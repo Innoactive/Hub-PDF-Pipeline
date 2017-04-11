@@ -4,6 +4,7 @@ import os
 import shutil
 from os import path
 
+import requests
 from asset_pipeline import BaseRemoteAssetPipeline, AbstractAssetPipeline
 from asset_pipeline import logger
 from wand.image import Image
@@ -101,3 +102,28 @@ class PdfAssetPipeline(PdfAssetPipelineMixin, AbstractAssetPipeline):
 class PdfRemoteAssetPipeline(PdfAssetPipeline, BaseRemoteAssetPipeline):
     def post_execute(self, asset_data):
         logger.info("Now uploading converted images for pdf {}".format(asset_data['images']))
+        self.upload_conversion_result(asset_data)
+
+    def upload_conversion_result(self, asset_data):
+        """
+        uploads the converted model back to the holocloud
+        :param asset_data: all the working data about the asset
+        :return:
+        """
+        url = '{proto}://{host}:{port}/{path}/'.format(proto=self.protocol, host=self.host,
+                                                       port=self.port,
+                                                       path='api/pdf-pages')
+        for idx, image_path in enumerate(asset_data['images']):
+            logger.info('Uploading image to %s' % url)
+            # attach the conversion result as a file to the post request
+            # also set the state to finished
+            payload = {
+                'image': open(image_path, 'rb'),
+                # the empty string in the tuple will prevent of setting a filename for this non file value
+                # see https://stackoverflow.com/questions/12385179/how-to-send-a-multipart-form-data-with-requests-in-python
+                'parent': ('', str(asset_data.get('id'))),
+                'pos': ('', str(idx + 1))
+            }
+            response = requests.request("POST", url, files=payload)
+            # if we get an error, show it.
+            response.raise_for_status()
