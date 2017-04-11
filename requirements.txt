@@ -1,0 +1,3 @@
+Wand
+git+ssh://git@github.com/Innoactive/HOLOCLOUD-asset-pipeline.git
+nose
