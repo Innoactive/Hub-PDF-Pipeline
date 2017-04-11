@@ -5,7 +5,7 @@ import shutil
 from os import path
 
 import requests
-from asset_pipeline import BaseRemoteAssetPipeline, AbstractAssetPipeline
+from asset_pipeline import BaseRemoteAssetPipeline, AbstractAssetPipeline, ConversionState
 from asset_pipeline import logger
 from wand.image import Image
 
@@ -100,6 +100,23 @@ class PdfAssetPipeline(PdfAssetPipelineMixin, AbstractAssetPipeline):
 
 
 class PdfRemoteAssetPipeline(PdfAssetPipeline, BaseRemoteAssetPipeline):
+    def pre_execute(self, asset_data):
+        asset_data = super(PdfRemoteAssetPipeline, self).pre_execute(asset_data)
+        # start the progress on the asset
+        # set the conversion state to be finished
+        url = '{proto}://{host}:{port}/{path}/{pdf}/'.format(proto=self.protocol, host=self.host,
+                                                             port=self.port,
+                                                             path='api/pdfs',
+                                                             pdf=asset_data.get('id'))
+
+        payload = {
+            'conversion_state': ConversionState.IN_PROGRESS
+        }
+        response = requests.request("PATCH", url, json=payload)
+        # if we get an error, show it.
+        response.raise_for_status()
+        return asset_data
+
     def post_execute(self, asset_data):
         logger.info("Now uploading converted images for pdf {}".format(asset_data['images']))
         self.upload_conversion_result(asset_data)
@@ -127,3 +144,15 @@ class PdfRemoteAssetPipeline(PdfAssetPipeline, BaseRemoteAssetPipeline):
             response = requests.request("POST", url, files=payload)
             # if we get an error, show it.
             response.raise_for_status()
+        # set the conversion state to be finished
+        url = '{proto}://{host}:{port}/{path}/{pdf}/'.format(proto=self.protocol, host=self.host,
+                                                             port=self.port,
+                                                             path='api/pdfs',
+                                                             pdf=asset_data.get('id'))
+
+        payload = {
+            'conversion_state': ConversionState.FINISHED
+        }
+        response = requests.request("PATCH", url, json=payload)
+        # if we get an error, show it.
+        response.raise_for_status()
