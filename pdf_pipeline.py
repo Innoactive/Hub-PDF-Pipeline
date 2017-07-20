@@ -53,26 +53,28 @@ class PdfAssetPipeline(PdfAssetPipelineMixin, AbstractAssetPipeline):
     def execute(self, asset_data):
         # convert posix path to whatever system we're on
         input_path = asset_data.get('input', {}).get('path', None)
+        output_path = asset_data.get('output', {}).get('path', None)
+        logger.info(asset_data)
         logger.info('now starting conversion progress for file {}'.format(input_path))
-        images = self.split_pdf_into_images(input_path)
+        images = self.split_pdf_into_images(input_path, output_path)
         logger.info('converted to {}'.format(images))
         # enrichen the asset data with the conversion result
         asset_data['images'] = images
 
-    def split_pdf_into_images(self, input_file):
+    def split_pdf_into_images(self, input_file, output_path=TMP_FILES_PATH):
         # make sure the file exists
         if not path.isfile(input_file):
             raise Exception("Provided pdf file does not exist")
         # 0. clean the staging area
-        if path.exists(TMP_FILES_PATH):
-            shutil.rmtree(TMP_FILES_PATH)
-        os.makedirs(TMP_FILES_PATH)
+        if path.exists(output_path):
+            shutil.rmtree(output_path)
+        os.makedirs(output_path)
         # 1. copy the pdf into the staging area
-        copy_dst = os.path.join(TMP_FILES_PATH, os.path.basename(input_file))
+        copy_dst = os.path.join(output_path, os.path.basename(input_file))
         shutil.copy(input_file, copy_dst)
         filename = os.path.splitext(os.path.basename(copy_dst))[0]
         # filename of the converted images
-        conv_dst = os.path.join(TMP_FILES_PATH, "%s" % filename)
+        conv_dst = os.path.join(output_path, "%s" % filename)
         # 2. run the conversion script
         result = []
         with Image() as dst_image:
