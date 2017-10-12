@@ -5,14 +5,13 @@ ENV MAGICK_HOME=/usr
 RUN apk add --update git imagemagick imagemagick-dev
 
 # copy required files
-RUN mkdir /src
+COPY src /src
 WORKDIR /src
-COPY *.py /src/
-COPY *.ini /src/
+COPY config.ini /src/
 COPY requirements.txt /src/
 
 # run pip install
-#RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt
 
 # start the pipeline
 CMD ["python","command_line.py", "-c", "config.ini"]

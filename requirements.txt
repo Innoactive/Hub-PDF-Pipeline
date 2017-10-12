@@ -1,3 +1,2 @@
+https://github.com/Innoactive/Hub-Base-Asset-Pipeline/zipball/v1.1
 Wand
-git+https://github.com/Innoactive/Hub-Base-Asset-Pipeline.git
-nose
