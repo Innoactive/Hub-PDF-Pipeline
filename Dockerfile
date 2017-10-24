@@ -7,11 +7,10 @@ RUN apk add --update git imagemagick imagemagick-dev
 # copy required files
 COPY src /src
 WORKDIR /src
-COPY config.ini /src/
-COPY requirements.txt /src/
+COPY requirements.txt /tmp/
 
 # run pip install
-RUN pip install -r requirements.txt
+RUN pip install -r /tmp/requirements.txt
 
 # start the pipeline
 CMD ["python","command_line.py", "-c", "config.ini"]
