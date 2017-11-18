@@ -41,11 +41,19 @@ class PdfAssetPipeline(PdfAssetPipelineMixin, AbstractAssetPipeline):
     def validate_configuration(self, config):
         # check that the resolution is sane
         if 'resolution' not in config:
-            logger.error("Please provide an image resolution for the output")
-            return False
+            # check if resolution has instead been provided as an environment
+            # variable
+            config['resolution'] = os.environ.get('ASSET_PIPELINE_PDF_OUTPUT_RESOLUTION')
+            if not config.get('resolution'):
+                logger.error("Please provide an image resolution for the output")
+                return False
         if 'dpi' not in config:
-            logger.error("Please provide a scanning resolution for the input pdf (dpi)")
-            return False
+            # check if resolution has instead been provided as an environment
+            # variable
+            config['dpi'] = os.environ.get('ASSET_PIPELINE_PDF_INPUT_DPI')
+            if not config.get('dpi'):
+                logger.error("Please provide a scanning resolution for the input pdf (dpi)")
+                return False
         # if we got here, everything's fine
         return True
 
