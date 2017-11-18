@@ -4,7 +4,6 @@ import os
 import shutil
 from os import path
 
-import requests
 from asset_pipeline import BaseRemoteAssetPipeline, AbstractAssetPipeline, ConversionState
 from asset_pipeline import logger
 from wand.image import Image
@@ -114,7 +113,7 @@ class PdfRemoteAssetPipeline(PdfAssetPipeline, BaseRemoteAssetPipeline):
         payload = {
             'conversion_state': ConversionState.IN_PROGRESS
         }
-        response = requests.request("PATCH", url, json=payload)
+        response = self.client.request("PATCH", url, json=payload)
         # if we get an error, show it.
         response.raise_for_status()
         return asset_data
@@ -143,7 +142,7 @@ class PdfRemoteAssetPipeline(PdfAssetPipeline, BaseRemoteAssetPipeline):
                 'parent': ('', str(asset_data.get('id'))),
                 'pos': ('', str(idx + 1))
             }
-            response = requests.request("POST", url, files=payload)
+            response = self.client.request("POST", url, files=payload)
             # if we get an error, show it.
             response.raise_for_status()
         # set the conversion state to be finished
@@ -155,6 +154,6 @@ class PdfRemoteAssetPipeline(PdfAssetPipeline, BaseRemoteAssetPipeline):
         payload = {
             'conversion_state': ConversionState.FINISHED
         }
-        response = requests.request("PATCH", url, json=payload)
+        response = self.client.request("PATCH", url, json=payload)
         # if we get an error, show it.
         response.raise_for_status()

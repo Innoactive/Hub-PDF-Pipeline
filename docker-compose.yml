@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+  pdf:
+    build:
+      context: .
+    container_name: pdf-pipeline
+    volumes:
+      - ./src:/src
+      - ./config.ini:/src/config.ini
